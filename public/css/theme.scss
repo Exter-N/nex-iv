@@ -1,0 +1,71 @@
+@import "@material/theme/color-palette";
+
+$mdc-theme-primary: $material-color-light-blue-300;
+$mdc-theme-secondary: $material-color-red-a400;
+$mdc-theme-background: $material-color-grey-900;
+
+@import "@material/button/mixins";
+@import "@material/checkbox/mixins";
+@import "@material/chips/mixins";
+@import "@material/fab/mixins";
+@import "@material/radio/mixins";
+@import "@material/tabs/tab/mixins";
+@import "@material/textfield/mixins";
+
+.mdc-button.secondary-filled-button {
+  @include mdc-button-filled-accessible($mdc-theme-secondary);
+}
+
+.mdc-button.secondary-text-button {
+  @include mdc-button-ink-color($mdc-theme-secondary);
+  @include mdc-states(secondary);
+}
+
+.mdc-button.secondary-stroked-button {
+  @include mdc-button-ink-color($mdc-theme-secondary);
+  @include mdc-button-stroke-color($mdc-theme-secondary);
+}
+
+.mdc-checkbox {
+  @include mdc-checkbox-container-colors(text-secondary-on-dark);
+}
+
+.mdc-chip {
+  @include mdc-chip-ink-color(text-primary-on-dark);
+}
+
+.mdc-radio {
+  @include mdc-radio-unchecked-stroke-color(text-secondary-on-dark);
+}
+
+.mdc-text-field {
+  @include mdc-text-field-icon-color(text-primary-on-dark);
+  @include mdc-text-field-ink-color(text-primary-on-dark);
+  @include mdc-text-field-label-color(text-secondary-on-dark);
+  @include mdc-text-field-line-ripple-color(text-hint-on-dark);
+}
+
+.mdc-text-field--textarea .mdc-floating-label {
+  background-color: unset;
+}
+
+.mdc-checkbox-wrapper,
+.mdc-radio-form-field {
+  @include mdc-theme-prop(color, text-primary-on-dark);
+}
+
+.mdc-tab {
+  @include mdc-tab-label-ink-color(text-secondary-on-dark);
+  @include mdc-tab-icon-ink-color(text-icon-on-dark);
+
+  &:hover {
+    @include mdc-tab-label-ink-color(text-primary-on-dark);
+    @include mdc-tab-icon-ink-color(text-secondary-on-dark);
+  }
+}
+
+.mdc-fab.primary-fab {
+  @include mdc-fab-accessible($mdc-theme-primary);
+}
+
+@import "@material/theme/mdc-theme";

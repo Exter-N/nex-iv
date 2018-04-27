@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>I. V. - É-Zo</title>
+<meta name="viewport" content="width=device-width" />
+<meta name="theme-color" content="#212121" />
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" type="text/css" href="./node_modules/material-components-web/dist/material-components-web.css" />
+<link rel="stylesheet" type="text/css" href="./css/theme.css" />
+<link rel="stylesheet" type="text/css" href="./css/app.css" />
+</head>
+<body class="mdc-typography">
+<div id="app" class="mdc-layout-grid main-layout-grid">
+  <div class="mdc-layout-grid__inner">
+    <div class="mdc-layout-grid__cell list-layout-cell" v-bind:class="{ 'hidden-on-phone': !!article || articleLoading }">
+        <div id="search-field-wrapper" class="mdc-text-field mdc-text-field--box mdc-text-field--with-leading-icon search-field-wrapper" data-mdc-auto-init="MDCTextField">
+            <i class="material-icons mdc-text-field__icon" tabindex="-1">search</i>
+            <input type="text" id="search-field" class="mdc-text-field__input" v-model="search" />
+            <label for="search-field" class="mdc-floating-label">Rechercher</label>
+            <div class="mdc-line-ripple"></div>
+        </div>
+		<ul id="article-list" class="mdc-list mdc-list--two-line article-list">
+			<li v-if="articlesLoading">
+				<indeterminate-progress-bar></indeterminate-progress-bar>
+			</li>
+			<template v-else>
+				<article-item v-for="art in articles" v-bind:key="art.id" v-bind:article-id="art.id" v-bind:first-key="art.firstKey" v-bind:body-summary="art.bodySummary"></article-item>
+			</template>
+		</ul>
+		<div class="actions-row">
+			<button v-bind:class="{ hidden: userLoading || !user || !user.writer || articleEditing }" v-on:click="createArticle" class="mdc-button mdc-button--raised hidden-on-desktop">Créer un article</button>
+			<div class="identity-actions">
+				<div class="user-identity hidden-on-non-phone" v-if="!userLoading && user && user.id">
+					<img class="user-identity__avatar" v-bind:src="'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png'" />
+					<span class="user-identity__username">{{ user.username }}</span>
+					<span class="user-identity__discriminator">#{{ user.discriminator }}</span>
+				</div>
+				<a v-bind:class="{ hidden: userLoading || user && user.id }" class="mdc-button mdc-button--raised hidden-on-non-phone" href="https://discordapp.com/api/oauth2/authorize?client_id=436598585124061184&redirect_uri=https%3A%2F%2Fxn---zo-iv-9ua.srv-nlo.fr%2Fcallback&response_type=code&scope=identify">Se connecter pour modifier</a>
+				<button v-bind:class="{ hidden: userLoading || !user || !user.id }" v-on:click="logOut" class="mdc-button hidden-on-non-phone">Se déconnecter</button>
+			</div>
+		</div>
+	</div>
+    <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-8-desktop article-layout-cell" v-bind:class="{ 'hidden-on-phone': !article && !articleLoading }">
+		<template v-if="articleLoading">
+			<h3 class="mdc-typography--headline"><button class="mdc-fab mdc-fab--mini primary-fab material-icons hidden-on-non-phone" aria-label="Retour au menu" v-on:click="closeArticle">arrow_back</button> Chargement &hellip;</h3>
+			<indeterminate-progress-bar v-if="articleLoading"></indeterminate-progress-bar>
+			<p class="article-body"></p>
+		</template>
+		<template v-else-if="!articleEditing && article">
+			<h3 class="mdc-typography--headline" v-if="article.keys.length > 0"><button class="mdc-fab mdc-fab--mini primary-fab material-icons hidden-on-non-phone" aria-label="Retour au menu" v-on:click="closeArticle">arrow_back</button>{{ article.keys[0] }}</h3>
+			<div class="mdc-typography--body2" v-if="article.keys.length > 1">Désignations alternatives : {{ article.keys.slice(1).join(', ') }}</div>
+			<p class="mdc-typography--body1 article-body">
+				<text-fragment v-bind:text-content="article.body"></text-fragment>
+			</p>
+		</template>
+		<template v-else-if="article">
+			<h3 class="mdc-typography--body2"><button class="mdc-fab mdc-fab--mini primary-fab material-icons hidden-on-non-phone" aria-label="Retour au menu" v-on:click="closeArticle">arrow_back</button><text-field class="key-field-0-wrapper" v-model="article.keys[0]" input-id="key-field-0" placeholder="Désignation principale" v-bind:maxlength="191"></text-field><button class="mdc-fab mdc-fab--mini primary-fab material-icons hidden-on-non-phone" v-bind:aria-label="showKeys ? 'Cacher les désignations alternatives' : 'Afficher les désignations alternatives'" v-on:click="showKeys = !showKeys;">{{ showKeys ? 'expand_less' : 'expand_more' }}</button></h3>
+			<div class="mdc-typography--body2" v-if="showKeys">Désignations alternatives : <keys-fields v-model="article.keys" input-id-prefix="key-field-" v-bind:maxlength="191"></keys-fields></div>
+			<p class="article-body article-body--editing">
+				<text-area class="body-field-wrapper" v-model="article.body" input-id="body-field" placeholder="Données de l'article" v-bind:maxlength="2000"></text-area>
+			</p>
+		</template>
+		<p v-else class="article-body"></p>
+		<div class="actions-row">
+			<button v-bind:class="{ hidden: userLoading || !user || !user.writer || articleEditing }" v-on:click="createArticle" class="mdc-button mdc-button--raised hidden-on-non-desktop">Créer un article</button>
+			<button v-bind:class="{ hidden: userLoading || !user || !user.writer || !article || articleEditing }" v-on:click="editArticle" class="mdc-button">Modifier</button>
+			<button v-bind:class="{ hidden: userLoading || !user || !user.writer || !article || articleEditing }" v-on:click="deleteArticle" class="mdc-button secondary-text-button">Supprimer</button>
+			<button v-bind:class="{ hidden: userLoading || !user || !user.writer || !articleEditing }" v-on:click="cancelEditArticle" class="mdc-button">Annuler</button>
+			<button v-bind:class="{ hidden: userLoading || !user || !user.writer || !articleEditing }" v-on:click="saveArticle" class="mdc-button mdc-button--raised">Enregistrer</button>
+			<div class="identity-actions">
+				<div class="user-identity" v-if="!userLoading && user && user.id">
+					<img class="user-identity__avatar" v-bind:src="'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png'" />
+					<span class="user-identity__username">{{ user.username }}</span>
+					<span class="user-identity__discriminator">#{{ user.discriminator }}</span>
+				</div>
+				<a v-bind:class="{ hidden: userLoading || user && user.id }" class="mdc-button mdc-button--raised" href="https://discordapp.com/api/oauth2/authorize?client_id=436598585124061184&redirect_uri=https%3A%2F%2Fxn---zo-iv-9ua.srv-nlo.fr%2Fcallback&response_type=code&scope=identify">Se connecter pour modifier</a>
+				<button v-bind:class="{ hidden: userLoading || !user || !user.id }" v-on:click="logOut" class="mdc-button">Se déconnecter</button>
+			</div>
+		</div>
+	</div>
+  </div>
+</div>
+<script src="./node_modules/material-components-web/dist/material-components-web.js"></script>
+<script src="./js/vue.min.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>
